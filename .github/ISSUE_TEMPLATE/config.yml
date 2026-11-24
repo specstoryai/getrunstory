@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ask a question
+    url: https://discord.gg/E47yQyEUd3
+    about: Ask in Discord for a quick answer.
+  - name: Read the docs
+    url: https://specstory.com/docs/runstory
+    about: How RunStory works, and a guide for each workflow.
+  - name: Report a security problem
+    url: https://github.com/specstoryai/getrunstory/security/advisories/new
+    about: Please report it in private, not in a public issue.

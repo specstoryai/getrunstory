@@ -1,0 +1,45 @@
+name: A finding was wrong, or RunStory missed a bug
+description: A check reported something that is not a problem, or it passed a commit that has one.
+labels: ["finding"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        These reports are how checks get better. This tracker is public, so please leave out secrets, tokens and private code.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What went wrong?
+      options:
+        - A finding is not a real problem
+        - A finding is real, but my change did not cause it
+        - A finding's script does not reproduce it
+        - The check missed a bug
+        - A retest closed a finding that is not fixed
+    validations:
+      required: true
+  - type: input
+    id: id
+    attributes:
+      label: The finding or the check
+      description: "A finding's id, e.g. f-3a9c41d27b6e, or a check's id, e.g. c-d61299e6. If your app is not private, a shared link from `runstory show <check> --share` helps most."
+    validations:
+      required: true
+  - type: textarea
+    id: truth
+    attributes:
+      label: What really happens
+      description: What the app does, and why the result is wrong. For a missed bug, say how to see the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: finding
+    attributes:
+      label: What RunStory said
+      description: The output of `runstory show <id>`, if you have it.
+      render: text
+  - type: input
+    id: models
+    attributes:
+      label: The models in the check
+      description: e.g. Claude Opus 5.5 and OpenAI Sol

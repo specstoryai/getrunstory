@@ -1,0 +1,50 @@
+# Copies the pages RunStory serves to coding agents and installers into this
+# repository, so each change to them has a public history. It commits only
+# when a file changed.
+#
+# GitHub pauses a scheduled workflow in a public repository after 60 days with
+# no activity in it. If the copies look old, run this workflow by hand from the
+# Actions tab, which also turns the schedule back on.
+name: mirror
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: mirror
+  cancel-in-progress: false
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Fetch the live files
+        run: |
+          set -euo pipefail
+          origin=https://runstory.specstory.com
+          # A file is replaced only by a complete, non-empty download.
+          fetch() {
+            curl --fail --silent --show-error --location --max-time 60 "$origin/$1" --output "$2.new"
+            test -s "$2.new"
+            mv "$2.new" "$2"
+          }
+          fetch agents.md agents/agents.md
+          fetch skill.md skills/runstory/SKILL.md
+          fetch install.sh install/install.sh
+          fetch install.ps1 install/install.ps1
+      - name: Commit what changed
+        run: |
+          set -euo pipefail
+          files="agents/agents.md skills/runstory/SKILL.md install/install.sh install/install.ps1"
+          if git diff --quiet -- $files; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- $files
+          git commit -m "Copy the live agents guide, skill and install scripts"
+          git push

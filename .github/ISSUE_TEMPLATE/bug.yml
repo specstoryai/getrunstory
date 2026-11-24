@@ -1,0 +1,56 @@
+name: Something went wrong
+description: The command line, the web app or the GitHub App did something you did not expect.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for telling us. This tracker is public, so please leave out secrets, tokens and private code.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: What the command printed
+      description: Paste the command and its output. Check it for secrets first.
+      render: text
+  - type: input
+    id: check
+    attributes:
+      label: The check
+      description: "The check's id, e.g. c-d61299e6, if this is about one check. If your app is not private, a shared link from `runstory show <check> --share` lets us see what you saw."
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What `runstory --version` prints.
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did it go wrong?
+      options:
+        - Command line
+        - Web app
+        - GitHub App
+        - The hook in my coding agent
+        - Installer
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Your system
+      description: e.g. macOS 15 on Apple silicon, Ubuntu 24.04, Windows 11
+  - type: input
+    id: agent
+    attributes:
+      label: Your coding agent
+      description: e.g. Claude Code, Codex, Cursor, or none

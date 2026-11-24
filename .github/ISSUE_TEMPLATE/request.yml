@@ -1,0 +1,29 @@
+name: I want RunStory to test something it does not test yet
+description: A kind of app, a language, a service, a coding agent, or a way to start a check.
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is it?
+      options:
+        - A kind of app, e.g. desktop or mobile
+        - A language or a framework
+        - A service my app needs, e.g. a database
+        - A coding agent
+        - A Git host or a pipeline
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What do you want to test?
+      description: Tell us about the app and what stops you today.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What would a check catch for you?
+      description: An example of a bug you would want found helps us most.

@@ -1,0 +1,28 @@
+# Checks each pull request with RunStory from a Windows runner.
+# Copy this file to .github/workflows/runstory.yml.
+# It needs the secret RUNSTORY_API_TOKEN: see ../README.md.
+#
+# The check itself runs in the same Linux sandbox as a check from Linux.
+# Use this file only when your CI runs on Windows.
+name: runstory
+on:
+  pull_request:
+    types: [opened, ready_for_review, synchronize]
+jobs:
+  check:
+    if: github.event.pull_request.draft == false
+    runs-on: windows-latest
+    timeout-minutes: 80
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - run: irm https://runstory.specstory.com/install.ps1 | iex
+      - run: Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.local\bin"
+      - run: runstory run "origin/${{ github.base_ref }}..HEAD" --wait --timeout 75m
+        env:
+          RUNSTORY_API_TOKEN: ${{ secrets.RUNSTORY_API_TOKEN }}

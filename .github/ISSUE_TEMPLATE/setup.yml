@@ -1,0 +1,51 @@
+name: RunStory could not boot my app
+description: Setup ended with gaps, booted only part of the app, or did not boot it at all.
+labels: ["setup"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A check can only test an app that boots, so these reports matter a lot. This tracker is public, so please leave out secrets, tokens and private code.
+  - type: dropdown
+    id: result
+    attributes:
+      label: How did setup end?
+      description: The top line that `runstory setup` printed.
+      options:
+        - Booted with gaps
+        - Partly booted
+        - Not booted
+        - It stopped before any of these
+    validations:
+      required: true
+  - type: textarea
+    id: app
+    attributes:
+      label: Your app
+      description: "What it is built with, and what it needs to run. For example: a Next.js app with PostgreSQL and Redis, started with docker compose."
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: The plan
+      description: What `runstory setup --plan` prints.
+      render: text
+  - type: textarea
+    id: logs
+    attributes:
+      label: The step that failed
+      description: "The part of `runstory show <id> --logs` around the failure. Check it for secrets first."
+      render: text
+  - type: input
+    id: repository
+    attributes:
+      label: The repository
+      description: A link, if the repository is public. It lets us run the same setup.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What `runstory --version` prints.
+    validations:
+      required: true

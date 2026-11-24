@@ -1,0 +1,27 @@
+# Checks each pull request into main with RunStory.
+# Copy this file to .github/workflows/runstory.yml.
+# It needs the secret RUNSTORY_API_TOKEN: see ../README.md.
+name: runstory
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, ready_for_review, synchronize]
+jobs:
+  check:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Build the pull request's newest commit, not GitHub's test merge.
+          ref: ${{ github.event.pull_request.head.sha }}
+          # Fetch the whole history, so RunStory can find where the branch left main.
+          fetch-depth: 0
+      - run: curl -fsSL https://runstory.specstory.com/install.sh | sh
+      - run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      # Check every commit the branch has that its base does not, as one change.
+      # The job fails when the check has findings.
+      - run: runstory run "origin/${{ github.base_ref }}..HEAD" --wait --timeout 75m
+        env:
+          RUNSTORY_API_TOKEN: ${{ secrets.RUNSTORY_API_TOKEN }}

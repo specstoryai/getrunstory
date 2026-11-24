@@ -1,0 +1,19 @@
+# Checks each merge request into main with RunStory.
+# Add this job to your .gitlab-ci.yml.
+# Store the key as a masked variable named RUNSTORY_API_TOKEN, with Protected off.
+runstory:
+  image: ubuntu:24.04
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+  variables:
+    # Fetch the whole history, so RunStory can find where the branch left main.
+    GIT_DEPTH: "0"
+  timeout: 80 minutes
+  before_script:
+    - apt-get update && apt-get install -y curl git openssl
+    - curl -fsSL https://runstory.specstory.com/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+  script:
+    - git fetch origin "+refs/heads/main:refs/remotes/origin/main"
+    # The job fails when the check has findings.
+    - runstory run origin/main..HEAD --wait --timeout 75m
