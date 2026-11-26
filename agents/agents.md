@@ -1,6 +1,6 @@
 # runstory, a guide for coding agents
 
-runstory runs the software in your commit, in a cloud sandbox, and tells you what broke. Each problem comes with a script that reproduces it. This guide is for runstory 0.68.0.
+runstory runs the software in your commit, in a cloud sandbox, and tells you what broke. Each problem comes with a script that reproduces it. This guide is for runstory 0.69.7.
 
 If runstory isn't set up in this repository yet, follow the steps under "Set up runstory". If it is, read "Day to day".
 
@@ -109,11 +109,17 @@ Offer to fix each finding, and wait for the person's answer before you change an
 
 Ask the person whether runstory should also check every push to GitHub and show the result on pull requests. If they say no, go to step 8.
 
-The GitHub App reads `.runstory/runstory.yml` only from a pushed commit. So first offer to commit the files that `runstory init` and `runstory setup` wrote, with the message "Add runstory". Once the person says yes, put them on the default branch, by a push or by a pull request that they merge.
+The GitHub App boots the head of the repository's default branch as soon as it's connected, and it reads `.runstory/runstory.yml` only from a pushed commit. So first offer to commit the files that `runstory init` and `runstory setup` wrote, with the message "Add runstory". Once the person says yes, put them on the default branch, by a push or by a pull request that they merge.
+
+Before you connect, say this to the person.
+
+> Once the GitHub App is connected, runstory boots your app the way the App runs it, for free. If it doesn't start, runstory's setup agent reads its files and output with OpenAI's model, or with DeepSeek's when OpenAI's fails.
 
 Run `runstory github connect --json`. When GitHub needs the person, it returns a `person_step` with 1 link. Pass on its `say` word for word. Then run the command in its `then`, `runstory github connect --wait --timeout 9m --json`, in a shell call that can last 10 minutes, and run it again each time it exits 8. If the person says the page reads "This link has ended", run `runstory github connect --json` again and pass on its new link. If its `person_step` asks who pays, ask the person with its `choices`, and never choose for them. If `problem.code` is `github_settings_not_pushed`, commit and push the files in `commit_files` once the person says yes, then run `runstory github connect --json` again. If `problem.code` is `github_no_remote` and `next` is null, this repository isn't on github.com, so tell the person that the GitHub App can't check it, and go to step 8.
 
-Exit 0 means the repository is connected, and `state` says whether its checks are `off` or `on`. The first connect takes this project's providers, models and limits, and the app folder of `.runstory/runstory.yml`, and it leaves the checks off. When `state` is `off`, the answer's `person_step` asks the person to turn on checks of every push in their own terminal, or with Automatic checks on the repository's page. Pass it on, and never turn them on yourself. Once they say it's done, run `runstory github connect --json` again, and `state` reads `on`. When `problem.code` is `github_not_allowed`, someone else must act, e.g. an admin of the repository or an owner of the org who approves GitHub's request, so pass on its `person_step` and stop.
+Exit 0 means the repository is connected, and `state` says whether its checks are `off` or `on`. Once the repository is connected, the same wait follows the App's own setup run. While `state` is `booting`, run the command in `next` in a shell call that can last 10 minutes, and run it again each time it exits 8. When `connection.booted` is true, the app booted the way the App runs it. If `setup.problem` names a gap or a failed build, tell the person its `message`. Exit 4 means the app didn't boot, and exit 3 with a `setup.problem` means runstory stopped before it booted anything. Tell the person `problem.message`. When the answer carries a `person_step`, e.g. for a value that the App lacks, pass that on and wait. Otherwise run the command in `next`, and fix it as in step 4. When `person_next` names a command in its place, that command is the person's to run in their own terminal, so pass it on and wait. Commit the fix and push it to the default branch. runstory starts no second run for a fix yet, so don't connect again to prove it. When `state` is `not_booted` and the answer has no problem, `setup.held.message` says why no run started. Tell the person, and go on.
+
+The first connect takes this project's providers, models and limits, and the app folder of `.runstory/runstory.yml`, and it leaves the checks off. When `state` is `off`, the answer's `person_step` asks the person to turn on checks of every push in their own terminal, or with Automatic checks on the repository's page. Pass it on, and never turn them on yourself. Once they say it's done, run `runstory github connect --json` again, and `state` reads `on`. When `problem.code` is `github_not_allowed`, someone else must act, e.g. an admin of the repository or an owner of the org who approves GitHub's request, so pass on its `person_step` and stop.
 
 ### 8. Finish
 
@@ -126,7 +132,7 @@ Then tell the person what's true now, in the shape below. Include only what you'
 > - Your app starts in runstory's sandbox.
 > - The first check … (passed with nothing found, or found 2 problems, with its link)
 > - Automatic checks are off, so your commits won't start a check until you ask for one. To check every commit, or every push when the GitHub App is connected, run `runstory settings --automatic on` in your terminal. It shows what each commit may spend and asks you to type yes.
-> - The GitHub App … (checks every push, is connected with its checks off, or isn't set up yet)
+> - The GitHub App … (checks every push, is connected with its checks off, or isn't set up yet). Your app … (booted the way the App runs it, didn't boot there, or wasn't booted there yet)
 >
 > From now on, ask me to check a commit or to fix what runstory found.
 
@@ -157,7 +163,7 @@ If they want runstory in their other repositories too, offer to save the skill a
 | 3 | Nothing ran, because something must change first. | If `problem.needs_person` is true, pass on its `person_step` and wait. If not, read `problem.message` and run `next`. |
 | 4 | The app couldn't boot. | Add what the answer names, as in step 4. |
 | 5 | runstory's service didn't answer, or it answered with an error. | If `problem.retry_helps` is false, don't run the command again, and tell the person what `problem.message` says. Otherwise try once more, then tell the person. |
-| 8 | The wait ended, and what it waited for is still going. | After `runstory login --wait` or `runstory github connect --wait`, run it again. Otherwise run the command in `next`, with `--timeout 9m --json` added. |
+| 8 | The wait ended. What it waited for is still going, or the next step has not started yet. | After `runstory login --wait` or `runstory github connect --wait`, run it again. After `runstory github connect`, run the command in `next` as it is written. Otherwise run the command in `next`, with `--timeout 9m --json` added. When `next` is null, pass on the `person_step`. |
 | 64 | The command line was wrong. | Read the help it printed, then fix the command. |
 | 70 | runstory itself crashed, which is a defect in runstory and not in the code it checks. | Run the command once more. If it exits 70 again, tell the person what `problem.message` says. When the answer has no `problem`, pass on the sentence the command printed instead. |
 
